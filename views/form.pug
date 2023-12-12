@@ -1,0 +1,10 @@
+// views/form.pug
+html
+  head
+    title Search Form
+  body
+    h1 Search Form
+    form(action='/ps4/route1', method='post')
+      label(for='search') Search:
+      input(type='text', name='search', id='search')
+      input(type='submit', value='Submit')
