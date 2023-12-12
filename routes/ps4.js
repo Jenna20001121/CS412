@@ -2,40 +2,60 @@
 const express = require('express');
 const router = express.Router();
 const request = require('request-promise');
-const nodeFetch = require('node-fetch');
+const redis = require('redis');
 
-// Configuration file (config.js - not pushed to GitHub)
+// Create a Redis client
+const redisClient = redis.createClient();
+
+// Your configuration file (config.js)
 const config = require('../config');
 
-router.get('/', (req, res) => {
-  res.render('form');
-});
+router.post('/route1', async (req, res) => {
+  const searchQuery = req.body.search;
 
-// Route using Promises
-router.post('/route1', (req, res) => {
-  // Implement data fetching logic using Promises
-  // ...
+  // Check the cache first
+  redisClient.get(searchQuery, async (err, cachedData) => {
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      res.json({ data: parsedData, source: 'cache' });
+    } else {
+      // Call the third-party API
+      const apiResponse = await request({
+        uri: `${config.apiUrl}/some/endpoint?search=${searchQuery}`,
+        json: true,
+      });
 
-  // Render the template with the fetched data
-  res.render('template', { data });
-});
+      // Cache the response with a 15-second timeout
+      redisClient.setex(searchQuery, 15, JSON.stringify(apiResponse));
 
-// Route using async/await
-router.post('/route2', async (req, res) => {
-  // Implement data fetching logic using async/await
-  // ...
-
-  // Render the template with the fetched data
-  res.render('template', { data });
-});
-
-// Route using callback
-router.post('/route3', (req, res) => {
-  // Implement data fetching logic using callback
-  // ...
-
-  // Render the template with the fetched data
-  res.render('template', { data });
+      res.json({ data: apiResponse, source: 'api' });
+    }
+  });
 });
 
 module.exports = router;
+
+router.post('/route1', async (req, res) => {
+  const searchQuery = req.body.search;
+
+  // Check the cache first
+  redisClient.get(searchQuery, async (err, cachedData) => {
+    if (cachedData) {
+      const parsedData = JSON.parse(cachedData);
+      res.json({ data: parsedData, source: 'cache' });
+    } else {
+      // Call the third-party API
+      const apiResponse = await request({
+        uri: `${config.apiUrl}/some/endpoint?search=${searchQuery}`,
+        json: true,
+      });
+
+      // Cache the response with a 15-second timeout
+      redisClient.setex(searchQuery, 15, JSON.stringify(apiResponse));
+
+      res.json({ data: apiResponse, source: 'api' });
+    }
+  });
+});
+
+// ... (remaining code)
