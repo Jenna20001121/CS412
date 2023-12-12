@@ -1,0 +1,7 @@
+<!-- src/app/search-form/search-form.component.html -->
+<form [formGroup]="searchForm">
+    <label for="query">Search Term:</label>
+    <input type="text" id="query" formControlName="query" />
+    <button type="button" (click)="search()">Query</button>
+  </form>
+  

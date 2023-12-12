@@ -8,6 +8,7 @@ import { HttpClient } from '@angular/common/http';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  title = 'Your App Title'; 
   data: any; // Use the appropriate type for your data
 
   constructor(private http: HttpClient) {
